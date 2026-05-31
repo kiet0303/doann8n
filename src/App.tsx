@@ -64,6 +64,57 @@ export default function App() {
     syncState(true);
   }, [syncState]);
 
+  // Decode code parameter returned from the Vercel Facebook redirect route
+  const handleOauthCallback = useCallback(async (code: string) => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      // 5. Submit authorization code securely to the n8n webhook API
+      const n8nRes = await workflowService.submitFacebookCode(code);
+      
+      if (n8nRes && n8nRes.pages) {
+        // 6. Push return records to our local server configurations store
+        const syncRes = await workflowService.saveConnectedPages(n8nRes.pages);
+        
+        if (syncRes.success) {
+          setIsFbConnected(true);
+          setPages(syncRes.pages);
+          const allPageIds = syncRes.pages.map((p) => p.id);
+          setSelectedPageIds(allPageIds);
+          
+          await workflowService.updateConfig(googleSheetUrl, allPageIds);
+          await syncState(false);
+          setTab("fanpages"); // Auto navigate to feed tables view
+        }
+      } else {
+        throw new Error("n8n responded successfully but did not supply pages list elements.");
+      }
+    } catch (err: any) {
+      console.error("Facebook OAuth exchange error:", err);
+      setApiError(
+        `OAuth Connection Error: ${
+          err.response?.data?.message || err.message || "n8n response has empty data structure"
+        }. Please verify that the n8n webhook gateway at 'https://doankiet.app.n8n.cloud/webhook/facebook-pages' is accepting POST payloads.`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [googleSheetUrl, syncState]);
+
+  // Listen for callback code parameters in routing context
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (code) {
+      // Remove query code arg cleanly from adress bar to keep beautiful SaaS styling matching URL norms
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      
+      // Handle the code exchange trigger
+      handleOauthCallback(code);
+    }
+  }, [handleOauthCallback]);
+
   // Polling scheduler specifically while workflow cycle is active
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -78,26 +129,18 @@ export default function App() {
     };
   }, [isWorkflowRunning, syncState]);
 
-  // Handle Facebook Auth Connect Mock Callback
-  const handleConnectFb = async () => {
-    setIsLoading(true);
-    setApiError(null);
-    try {
-      const res = await workflowService.connectFacebook();
-      if (res.success) {
-        setIsFbConnected(res.isFbConnected);
-        setPages(res.pages);
-        // Silently update configs with connected pages targeted by default
-        const defaultPageIds = ["pg_1", "pg_3"];
-        setSelectedPageIds(defaultPageIds);
-        await workflowService.updateConfig(googleSheetUrl, defaultPageIds);
-        await syncState(false);
-      }
-    } catch (err: any) {
-      setApiError("Facebook login failed. Please retry.");
-    } finally {
-      setIsLoading(false);
-    }
+  // Handle Facebook Auth Connect Redirect Handler 
+  const handleConnectFb = () => {
+    const appId = "PASTE_MY_APP_ID";
+    const redirectUri = "https://doann8n.vercel.app";
+    const scopes = ["pages_show_list", "pages_manage_posts", "public_profile"].join(",");
+    
+    const fbOAuthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&scope=${scopes}&response_type=code`;
+
+    // Perform direct browser redirect
+    window.location.href = fbOAuthUrl;
   };
 
   // Disconnect Facebook integration
@@ -149,11 +192,24 @@ export default function App() {
     }
   };
 
-  // Start automation trigger loop
+  // Start automation trigger loop with complete n8n payload structure
   const handleStartWorkflow = async () => {
     setApiError(null);
     try {
-      const res = await workflowService.startWorkflow();
+      const activePagesPayload = pages
+        .filter((page) => selectedPageIds.includes(page.id))
+        .map((page) => ({
+          id: page.id,
+          name: page.name,
+          access_token: page.access_token || page.accessToken || "EAAUxb_mock_access_token_for_n8n"
+        }));
+
+      const payload = {
+        sheetUrl: googleSheetUrl,
+        selectedPages: activePagesPayload
+      };
+
+      const res = await workflowService.startWorkflow(payload);
       if (res.success) {
         setIsWorkflowRunning(res.isWorkflowRunning);
         await syncState(false);

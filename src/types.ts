@@ -5,6 +5,8 @@ export interface FacebookPage {
   followers: number;
   pictureUrl: string;
   connected: boolean;
+  access_token?: string;
+  accessToken?: string;
 }
 
 export interface WorkflowLog {

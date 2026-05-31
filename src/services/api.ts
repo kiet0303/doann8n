@@ -22,6 +22,18 @@ export const workflowService = {
     return response.data;
   },
 
+  // Submit actual Facebook authorization code to n8n webhook
+  submitFacebookCode: async (code: string): Promise<{ success: boolean; pages: FacebookPage[] }> => {
+    const response = await axios.post("https://doankiet.app.n8n.cloud/webhook/facebook-pages", { code });
+    return response.data;
+  },
+
+  // Sync actual authorized fanpages to local node express cache
+  saveConnectedPages: async (pages: FacebookPage[]): Promise<{ success: boolean; pages: FacebookPage[] }> => {
+    const response = await api.post("/facebook/pages/sync", { pages });
+    return response.data;
+  },
+
   // Disconnect mock Facebook Account
   disconnectFacebook: async (): Promise<{ success: boolean; isFbConnected: boolean; pages: FacebookPage[] }> => {
     const response = await api.post("/facebook/disconnect");
@@ -44,8 +56,8 @@ export const workflowService = {
   },
 
   // Start automation
-  startWorkflow: async (): Promise<{ success: boolean; isWorkflowRunning: boolean }> => {
-    const response = await api.post<{ success: boolean; isWorkflowRunning: boolean }>("/workflow/start");
+  startWorkflow: async (payload?: { sheetUrl: string; selectedPages: { id: string; name: string; access_token?: string }[] }): Promise<{ success: boolean; isWorkflowRunning: boolean }> => {
+    const response = await api.post<{ success: boolean; isWorkflowRunning: boolean }>("/workflow/start", payload);
     return response.data;
   },
 
