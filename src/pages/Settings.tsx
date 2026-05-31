@@ -117,7 +117,7 @@ export default function Settings({
                 <input
                   type="text"
                   disabled
-                  value="198402509124_oauth_client"
+                  value="1264658318811886"
                   className="w-full px-3 py-2.5 border border-[#CBD5E1] bg-[#F8FAFC] text-slate-500 rounded-lg font-mono text-[11px]"
                 />
               </div>
