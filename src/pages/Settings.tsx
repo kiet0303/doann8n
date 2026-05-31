@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FileSpreadsheet, Server, RefreshCw, Layers, Lock } from "lucide-react";
 
 interface SettingsProps {
@@ -18,6 +18,7 @@ export default function Settings({
   onReset,
   isWorkflowRunning,
 }: SettingsProps) {
+  const [redirectUri, setRedirectUri] = useState("https://autofb.vercel.app/");
 
   return (
     <div className="space-y-6 text-slate-850">
@@ -102,6 +103,16 @@ export default function Settings({
                 />
               </div>
               <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-[#64748B] uppercase tracking-wide">Facebook OAuth Redirect URI</label>
+                <input
+                  type="text"
+                  value={redirectUri}
+                  onChange={(e) => setRedirectUri(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-[#CBD5E1] bg-[#F8FAFC] focus:bg-white focus:border-[#2563EB] text-slate-800 rounded-lg font-mono text-[11px] outline-none transition"
+                  placeholder="https://autofb.vercel.app/"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-[#64748B] uppercase tracking-wide font-mono">App Client identity</label>
                 <input
                   type="text"
@@ -116,7 +127,7 @@ export default function Settings({
                   {isFbConnected ? "Expires in 59 Days (Long-Lived Graph Token Active)" : "No Valid Integration Token Found"}
                 </span>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 md:col-span-2">
                 <label className="text-xs font-bold text-[#64748B] uppercase tracking-wide">OAuth Access Controls</label>
                 {isFbConnected ? (
                   <button
@@ -183,6 +194,7 @@ export default function Settings({
             <pre className="p-3 bg-slate-950 text-emerald-400 font-mono text-[10px] rounded-lg overflow-x-auto border border-slate-900 leading-normal select-all">
 {JSON.stringify({
   sheetUrl: googleSheetUrl || "https://docs.google.com/spreadsheets/...",
+  redirectUri: redirectUri,
   selectedPages: isFbConnected ? [
     { id: "pg_1", name: "TechCraft Insights", access_token: "EAAUxb..." },
     { id: "pg_3", name: "AI Automation Hub", access_token: "EAAUxb..." }
