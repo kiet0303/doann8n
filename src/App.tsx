@@ -135,7 +135,7 @@ export default function App() {
     const redirectUri = "https://doann8n.vercel.app";
     const scopes = ["pages_show_list", "pages_manage_posts", "public_profile"].join(",");
     
-    const fbOAuthUrl = `https://www.facebook.com/v23.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(
+    const fbOAuthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(
       redirectUri
     )}&scope=${scopes}&response_type=code`;
 
