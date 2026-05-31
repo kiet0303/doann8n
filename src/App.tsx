@@ -179,8 +179,8 @@ export default function App() {
   // Handle Facebook Auth Connect Redirect Handler 
   const handleConnectFb = () => {
     const appId = "1264658318811886";
-    const redirectUri = "https://doann8n.vercel.app";
-    const scopes = ["pages_show_list", "pages_manage_posts", "public_profile"].join(",");
+    const redirectUri = "https://doann8n.vercel.app/";
+    const scopes = ["pages_show_list", "pages_manage_posts", "pages_read_engagement", "public_profile"].join(",");
     
     const fbOAuthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(
       redirectUri

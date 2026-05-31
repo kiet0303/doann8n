@@ -18,7 +18,7 @@ export default function Settings({
   onReset,
   isWorkflowRunning,
 }: SettingsProps) {
-  const [redirectUri, setRedirectUri] = useState("https://doann8n.vercel.app");
+  const [redirectUri, setRedirectUri] = useState("https://doann8n.vercel.app/");
 
   return (
     <div className="space-y-6 text-slate-850">
