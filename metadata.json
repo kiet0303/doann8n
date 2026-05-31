@@ -1,0 +1,6 @@
+{
+  "name": "AutoFB Workflow Automation",
+  "description": "Automate content creation and postings to Facebook Fanpages using AI, Google Sheets, and workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
