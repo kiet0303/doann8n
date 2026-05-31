@@ -3,6 +3,7 @@ import DashboardCards from "../components/DashboardCards";
 import WorkflowForm from "../components/WorkflowForm";
 import PageSelector from "../components/PageSelector";
 import LogsPanel from "../components/LogsPanel";
+import WorkflowSteps from "../components/WorkflowSteps";
 import { FacebookPage, WorkflowLog, WorkflowStats } from "../types";
 import { Sparkles, ArrowRight, ExternalLink } from "lucide-react";
 
@@ -108,7 +109,13 @@ export default function Dashboard({
             isLoading={isLoading}
           />
 
-          {/* 2. Real-time log stream */}
+          {/* 2. AI Workflow Status Monitor */}
+          <WorkflowSteps
+            isWorkflowRunning={isWorkflowRunning}
+            logs={logs}
+          />
+
+          {/* 3. Real-time log stream */}
           <LogsPanel
             logs={logs}
             onClearLogs={onClearLogs}

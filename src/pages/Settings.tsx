@@ -171,6 +171,28 @@ export default function Settings({
               <span>Hydrate Database Baseline</span>
             </button>
           </div>
+
+          {/* Active n8n Dispatch Payload Section (#15 Requirement) */}
+          <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-sm text-left">
+            <h4 className="font-sans font-bold text-xs text-slate-900 uppercase tracking-wider mb-2">
+              Active n8n Webhook Payload
+            </h4>
+            <p className="text-[#64748B] text-[11px] font-semibold mb-3 leading-relaxed">
+              Dynamic payload structure transmitted to the backend/n8n gateway when the workflow is active:
+            </p>
+            <pre className="p-3 bg-slate-950 text-emerald-400 font-mono text-[10px] rounded-lg overflow-x-auto border border-slate-900 leading-normal select-all">
+{JSON.stringify({
+  sheetUrl: googleSheetUrl || "https://docs.google.com/spreadsheets/...",
+  selectedPages: isFbConnected ? [
+    { id: "pg_1", name: "TechCraft Insights", access_token: "EAAUxb..." },
+    { id: "pg_3", name: "AI Automation Hub", access_token: "EAAUxb..." }
+  ] : []
+}, null, 2)}
+            </pre>
+            <span className="text-[10px] text-slate-400 font-medium block mt-2">
+              Note: Page access tokens are automatically passed through server-side secret stores securely.
+            </span>
+          </div>
         </div>
       </div>
 
