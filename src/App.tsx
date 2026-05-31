@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import { FacebookPage, WorkflowLog, WorkflowStats } from "./types";
@@ -28,6 +28,20 @@ export default function App() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  // Facebook OAuth flow states for detailed user feedback
+  const [oauthStatus, setOauthStatus] = useState<{
+    status: "idle" | "loading" | "success" | "error";
+    message: string | null;
+  }>({ status: "idle", message: null });
+
+  // Extracted OAuth code state initialized on load
+  const [oauthCode, setOauthCode] = useState<string | null>(() => {
+    return new URLSearchParams(window.location.search).get("code");
+  });
+
+  // Track if we have already triggered the exchange for this code to prevent dual-firing
+  const isExchangeStarted = useRef(false);
 
   // Unified State Synchronizer
   const syncState = useCallback(async (showIndicator = false) => {
@@ -64,56 +78,89 @@ export default function App() {
     syncState(true);
   }, [syncState]);
 
-  // Decode code parameter returned from the Vercel Facebook redirect route
-  const handleOauthCallback = useCallback(async (code: string) => {
-    setIsLoading(true);
-    setApiError(null);
-    try {
-      // 5. Submit authorization code securely to the n8n webhook API
-      const n8nRes = await workflowService.submitFacebookCode(code);
-      
-      if (n8nRes && n8nRes.pages) {
-        // 6. Push return records to our local server configurations store
-        const syncRes = await workflowService.saveConnectedPages(n8nRes.pages);
-        
-        if (syncRes.success) {
-          setIsFbConnected(true);
-          setPages(syncRes.pages);
-          const allPageIds = syncRes.pages.map((p) => p.id);
-          setSelectedPageIds(allPageIds);
-          
-          await workflowService.updateConfig(googleSheetUrl, allPageIds);
-          await syncState(false);
-          setTab("fanpages"); // Auto navigate to feed tables view
-        }
-      } else {
-        throw new Error("n8n responded successfully but did not supply pages list elements.");
-      }
-    } catch (err: any) {
-      console.error("Facebook OAuth exchange error:", err);
-      setApiError(
-        `OAuth Connection Error: ${
-          err.response?.data?.message || err.message || "n8n response has empty data structure"
-        }. Please verify that the n8n webhook gateway at 'https://doankiet.app.n8n.cloud/webhook/facebook-pages' is accepting POST payloads.`
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [googleSheetUrl, syncState]);
-
-  // Listen for callback code parameters in routing context
+  // Handle Facebook OAuth code exchange
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (code) {
-      // Remove query code arg cleanly from adress bar to keep beautiful SaaS styling matching URL norms
-      const cleanUrl = window.location.origin + window.location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
+    if (!oauthCode) return;
+    if (isExchangeStarted.current) return;
+    isExchangeStarted.current = true;
+
+    const exchangeCode = async () => {
+      setOauthStatus({
+        status: "loading",
+        message: "Synchronizing with n8n workflow webhook gateway. Fetching managed Facebook Pages...",
+      });
       
-      // Handle the code exchange trigger
-      handleOauthCallback(code);
-    }
-  }, [handleOauthCallback]);
+      try {
+        // 3. Send POST request using axios to doankiet n8n webhook
+        const n8nRes = await workflowService.submitFacebookCode(oauthCode);
+        
+        let pagesList: FacebookPage[] = [];
+        if (n8nRes) {
+          if (Array.isArray(n8nRes.pages)) {
+            pagesList = n8nRes.pages;
+          } else if (Array.isArray(n8nRes)) {
+            pagesList = n8nRes;
+          } else if (n8nRes.success && Array.isArray(n8nRes.pages)) {
+            pagesList = n8nRes.pages;
+          } else {
+            // Check for any nested page structures
+            const foundArray = Object.values(n8nRes).find(val => Array.isArray(val));
+            if (foundArray) {
+              pagesList = foundArray as FacebookPage[];
+            }
+          }
+        }
+
+        if (pagesList && pagesList.length > 0) {
+          // Sync with local application memory state and session cache
+          const syncRes = await workflowService.saveConnectedPages(pagesList);
+          
+          if (syncRes.success) {
+            setIsFbConnected(true);
+            setPages(syncRes.pages);
+            const allPageIds = syncRes.pages.map((p) => p.id);
+            setSelectedPageIds(allPageIds);
+            
+            // Clean up config targets
+            await workflowService.updateConfig(googleSheetUrl, allPageIds);
+            await syncState(false);
+            
+            // 4. Remove OAuth code from browser URL of doann8n vercel redirect cleanly
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+            
+            setOauthStatus({
+              status: "success",
+              message: `Successfully authenticated! Connected and loaded ${pagesList.length} Facebook fanpages.`,
+            });
+            
+            // Set tab to render fanpages immediately as requested in specs
+            setTab("fanpages");
+            setOauthCode(null); // Mark as done to prevent any repeating trigger
+          } else {
+            throw new Error("Unable to register pages list to the Express local memory storage.");
+          }
+        } else {
+          throw new Error("No active or managed Facebook Pages were returned. Make sure the authenticated user is an administrator of the pages.");
+        }
+      } catch (err: any) {
+        console.error("Facebook OAuth exchange error:", err);
+        const errMsg = err.response?.data?.message || err.message || "Failed parsing webhook payload";
+        
+        setOauthStatus({
+          status: "error",
+          message: `OAuth Connection Error: ${errMsg}. Ensure that n8n endpoint handles security keys properly.`,
+        });
+        
+        // Clear query code anyway to avoid infinity loop or lockups on manual refresh
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        setOauthCode(null);
+      }
+    };
+
+    exchangeCode();
+  }, [oauthCode, googleSheetUrl, syncState]);
 
   // Polling scheduler specifically while workflow cycle is active
   useEffect(() => {
@@ -347,6 +394,51 @@ export default function App() {
               <h4 className="font-bold uppercase tracking-wider text-[10px]">SYSTEM EXCEPTION LOGGED</h4>
               <p className="mt-1 font-medium leading-relaxed">{apiError}</p>
             </div>
+          </div>
+        )}
+
+        {/* Facebook OAuth Notification Banners */}
+        {oauthStatus.status !== "idle" && (
+          <div className="mx-8 mt-6">
+            {oauthStatus.status === "loading" && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-3 text-blue-700 text-xs shadow-sm shadow-blue-100/50">
+                <Loader2 className="w-5 h-5 text-blue-500 shrink-0 animate-spin" />
+                <div>
+                  <h4 className="font-bold uppercase tracking-wider text-[10px] text-blue-800">Facebook Authenticating Handshake</h4>
+                  <p className="mt-1 font-medium leading-relaxed text-blue-600">{oauthStatus.message}</p>
+                </div>
+              </div>
+            )}
+            {oauthStatus.status === "success" && (
+              <div className="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl flex items-start gap-3 text-emerald-700 text-xs shadow-sm shadow-emerald-100/50">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-bold uppercase tracking-wider text-[10px] text-emerald-800">Connection Completed successfully</h4>
+                  <p className="mt-1 font-medium leading-relaxed text-emerald-600">{oauthStatus.message}</p>
+                </div>
+                <button 
+                  onClick={() => setOauthStatus({ status: "idle", message: null })}
+                  className="text-emerald-500 hover:text-emerald-700 font-bold px-2 text-sm selection:bg-transparent"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            {oauthStatus.status === "error" && (
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 text-rose-700 text-xs shadow-sm shadow-rose-100/50">
+                <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-bold uppercase tracking-wider text-[10px] text-rose-800">Connection authorization aborted</h4>
+                  <p className="mt-1 font-medium leading-relaxed text-rose-600">{oauthStatus.message}</p>
+                </div>
+                <button 
+                  onClick={() => setOauthStatus({ status: "idle", message: null })}
+                  className="text-rose-500 hover:text-rose-700 font-bold px-2 text-sm selection:bg-transparent"
+                >
+                  ×
+                </button>
+              </div>
+            )}
           </div>
         )}
 
