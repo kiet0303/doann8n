@@ -75,7 +75,16 @@ export default function App() {
 
   // Hydrate initial configurations on mount
   useEffect(() => {
-    syncState(true);
+    syncState(true).then(() => {
+      const savedConnected = localStorage.getItem("fb_connected");
+      const savedPages = localStorage.getItem("fb_pages");
+      if (savedConnected === "true" && savedPages) {
+        const parsed = JSON.parse(savedPages);
+        setIsFbConnected(true);
+        setPages(parsed);
+        setSelectedPageIds(parsed.map((p: any) => p.id));
+      }
+    });
   }, [syncState]);
 
   // Handle Facebook OAuth code exchange
@@ -121,6 +130,9 @@ export default function App() {
             setPages(syncRes.pages);
             const allPageIds = syncRes.pages.map((p) => p.id);
             setSelectedPageIds(allPageIds);
+            
+            localStorage.setItem("fb_connected", "true");
+            localStorage.setItem("fb_pages", JSON.stringify(syncRes.pages));
             
             // Clean up config targets
             await workflowService.updateConfig(googleSheetUrl, allPageIds);
@@ -201,6 +213,8 @@ export default function App() {
         setIsWorkflowRunning(false);
         setPages(res.pages);
         setSelectedPageIds([]);
+        localStorage.removeItem("fb_connected");
+        localStorage.removeItem("fb_pages");
         await syncState(false);
       }
     } catch (err: any) {
