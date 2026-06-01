@@ -57,13 +57,18 @@ export const workflowService = {
   },
 
   // Start automation
-  startWorkflow: async (payload?: { sheetUrl: string; selectedPages: { id: string; name: string; access_token?: string }[] }): Promise<{ success: boolean; isWorkflowRunning: boolean }> => {
+  startWorkflow: async (payload?: {
+    mode?: "sheet" | "trend";
+    sheetUrl?: string;
+    selectedPages: { id: string; name: string; access_token?: string }[];
+    trendKeyword?: string;
+    numPosts?: number;
+    aiStyle?: string;
+    scheduleTime?: string;
+  }): Promise<{ success: boolean; isWorkflowRunning: boolean }> => {
     const response = await axios.post(
       "https://doankiet.app.n8n.cloud/webhook/auto-post",
-      {
-        sheetUrl: payload?.sheetUrl,
-        selectedPages: payload?.selectedPages
-      }
+      payload
     );
     return { success: true, isWorkflowRunning: false };
   },

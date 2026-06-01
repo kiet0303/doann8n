@@ -18,7 +18,13 @@ interface DashboardProps {
   pages: FacebookPage[];
   selectedPageIds: string[];
   onTogglePage: (id: string) => void;
-  onStartWorkflow: () => void;
+  onStartWorkflow: (config?: {
+    mode: "sheet" | "trend";
+    trendKeyword?: string;
+    numPosts?: number;
+    aiStyle?: string;
+    scheduleTime?: string;
+  }) => void;
   onStopWorkflow: () => void;
   logs: WorkflowLog[];
   onClearLogs: () => void;
@@ -107,6 +113,7 @@ export default function Dashboard({
             onStartWorkflow={onStartWorkflow}
             onStopWorkflow={onStopWorkflow}
             isLoading={isLoading}
+            pages={pages}
           />
 
           {/* 2. AI Workflow Status Monitor */}

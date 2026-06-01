@@ -27,12 +27,13 @@ export default function WorkflowSteps({ isWorkflowRunning, logs }: WorkflowSteps
       return { stepIndex: 0, label: "Reading Google Sheet" };
     }
     if (
-      msg.includes("gemini") || 
-      msg.includes("triggering gemini") || 
+      msg.includes("groq") || 
+      msg.includes("triggering groq") || 
       msg.includes("ai caption") || 
       msg.includes("fallback caption") || 
       msg.includes("copywriter") ||
-      msg.includes("generating caption")
+      msg.includes("generating caption") ||
+      msg.includes("gemini")
     ) {
       return { stepIndex: 1, label: "Generating AI caption" };
     }
@@ -66,11 +67,11 @@ export default function WorkflowSteps({ isWorkflowRunning, logs }: WorkflowSteps
   }, [isWorkflowRunning, logs]);
 
   const steps = [
-    { title: "Reading Google Sheet", desc: "n8n fetches pending rows" },
-    { title: "Generating AI caption", desc: "Gemini drafts custom copywriting" },
-    { title: "Moderation checking", desc: "OpenAI inspects content safety" },
-    { title: "Posting to Facebook", desc: "Concurrently posts with Graph API" },
-    { title: "Updating Google Sheet", desc: "Sets status col to PUBLISHED" },
+    { title: "Fetch Source", desc: "Extract Sheet Row / Trends Category" },
+    { title: "Generating AI caption", desc: "Groq AI drafts high-quality copy" },
+    { title: "Content validation", desc: "System checks caption guidelines" },
+    { title: "Posting to Facebook", desc: "Concurrently posts to selected pages" },
+    { title: "Updating Status", desc: "Marks queue as published / complete" },
   ];
 
   return (

@@ -275,7 +275,13 @@ export default function App() {
   };
 
   // Start automation trigger loop with complete n8n payload structure
-  const handleStartWorkflow = async () => {
+  const handleStartWorkflow = async (config?: {
+    mode: "sheet" | "trend";
+    trendKeyword?: string;
+    numPosts?: number;
+    aiStyle?: string;
+    scheduleTime?: string;
+  }) => {
     setApiError(null);
     try {
       // Save state to localStorage to prevent losing it on Serverless reset
@@ -289,8 +295,13 @@ export default function App() {
         .map(p => ({ id: p.id, name: p.name, access_token: (p as any).access_token }));
 
       await workflowService.startWorkflow({
+        mode: config?.mode || "sheet",
         sheetUrl: googleSheetUrl,
-        selectedPages: selectedPagesData
+        selectedPages: selectedPagesData,
+        trendKeyword: config?.trendKeyword,
+        numPosts: config?.numPosts,
+        aiStyle: config?.aiStyle,
+        scheduleTime: config?.scheduleTime,
       });
 
       setIsWorkflowRunning(true);

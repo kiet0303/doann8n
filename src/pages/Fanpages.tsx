@@ -172,52 +172,59 @@ export default function Fanpages({
                   return (
                     <tr
                       key={page.id}
-                      className={`hover:bg-[#F8FAFC]/50 transition duration-100 ${isSelected ? "bg-[#EFF6FF]/25" : ""}`}
+                      className={`hover:bg-[#F8FAFC]/50 transition duration-150 ${isSelected ? "bg-[#EFF6FF]/25" : ""}`}
                     >
-                      <td className="py-4 px-6">
+                      <td className={`py-4 px-6 transition-all duration-300 ${isSelected ? "border-l-4 border-blue-600 pl-5 bg-blue-50/10" : ""}`}>
                         <div className="flex items-center gap-3.5">
                           <img
                             src={page.pictureUrl}
                             alt={page.name}
                             referrerPolicy="no-referrer"
-                            className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0"
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0 shadow-sm"
                           />
                           <div>
-                            <h4 className="font-semibold text-slate-900 text-xs leading-snug">{page.name}</h4>
+                            <h4 className="font-bold text-slate-900 text-xs leading-snug">{page.name}</h4>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[9px] text-[#64748B] bg-slate-100 border border-slate-200 font-mono px-1.5 py-0.5 rounded leading-none font-semibold">
+                              <span className="text-[9px] text-blue-650 bg-blue-50/50 border border-blue-105/35 font-mono px-1.5 py-0.5 rounded leading-none font-semibold">
                                 ID {page.id.substring(0, 8)}
                               </span>
-                              <span className="text-[11px] text-[#64748B]">{page.category}</span>
+                              <span className="text-[11px] text-[#64748B] font-medium">{page.category}</span>
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <div className="font-mono text-xs font-semibold text-slate-800">
+                        <div className="font-mono text-xs font-bold text-slate-800">
                           {page.followers.toLocaleString()}
                         </div>
-                        <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium">Organic reach</span>
+                        <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium">Organic fan count</span>
                       </td>
                       <td className="py-4 px-6">
                         {isSelected ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-[#EFF6FF] text-[#2563EB] rounded-full border border-blue-100 leading-none">
-                            <Sparkles className="w-3 h-3 text-[#2563EB]" />
-                            <span>Target Enabled</span>
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-extrabold bg-emerald-50 text-emerald-700 rounded-full border border-emerald-250/50 leading-none uppercase tracking-wide">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>Posting Enabled</span>
+                            </span>
+                            <span className="text-[9px] text-slate-400 font-mono font-medium pl-1">Live queue dispatching</span>
+                          </div>
                         ) : (
-                          <span className="inline-flex items-center gap-2 px-2.5 py-1 text-[11px] font-medium bg-slate-50 text-[#64748B] rounded-full border border-slate-200 leading-none">
-                            <span>Inactive</span>
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-extrabold bg-slate-50 text-slate-500 rounded-full border border-slate-200 leading-none uppercase tracking-wide">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                              <span>Inactive Target</span>
+                            </span>
+                            <span className="text-[9px] text-slate-400 font-mono font-medium pl-1">Excl. from feed</span>
+                          </div>
                         )}
                       </td>
                       <td className="py-4 px-6 text-right">
                         <button
                           onClick={() => onTogglePage(page.id)}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition duration-155 cursor-pointer ${
+                          className={`px-3 py-2 text-xs font-bold rounded-lg border transition-all duration-155 cursor-pointer active:scale-[0.98] select-none ${
                             isSelected
-                              ? "bg-white hover:bg-slate-50 border-[#CBD5E1] text-slate-700 font-semibold"
-                              : "bg-[#2563EB] hover:bg-blue-700 border-transparent text-white font-medium"
+                              ? "bg-rose-50 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 border-rose-200 text-rose-600 font-bold"
+                              : "bg-[#2563EB] hover:bg-blue-700 border-transparent text-white font-bold hover:shadow-md hover:shadow-blue-500/10"
                           }`}
                         >
                           {isSelected ? "Deselect" : "Select Target"}

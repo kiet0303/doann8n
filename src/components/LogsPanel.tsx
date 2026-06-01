@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Terminal, Trash2, Filter, ChevronDown, ChevronUp, CheckCircle, AlertTriangle, AlertCircle, Info, RefreshCw } from "lucide-react";
+import { Terminal, Trash2, Filter, ChevronDown, ChevronUp, CheckCircle, AlertTriangle, AlertCircle, Info, RefreshCw, Copy, Clock, Sparkles } from "lucide-react";
 import { WorkflowLog } from "../types";
 
 interface LogsPanelProps {
@@ -85,7 +85,7 @@ export default function LogsPanel({ logs, onClearLogs, isWorkflowRunning, onRefr
                 </span>
               )}
             </h3>
-            <p className="text-xs text-slate-500">Real-time status updates, Gemini caption payloads, & safety evaluations</p>
+            <p className="text-xs text-slate-500">Real-time status updates, Groq AI caption payloads, & safety evaluations</p>
           </div>
         </div>
 
@@ -218,27 +218,131 @@ export default function LogsPanel({ logs, onClearLogs, isWorkflowRunning, onRefr
 
                 {/* Expanded Details metadata panel */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-1.5 border-t border-slate-850 bg-slate-950/60 rounded-b-xl text-left">
-                    <div className="space-y-2">
-                      <div>
-                        <span className="text-[10px] text-slate-500 font-mono uppercase tracking-wider block">Log identifier:</span>
-                        <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850">{log.id}</span>
-                      </div>
-                      
-                      {log.details && (
+                  <div className="px-5 pb-5 pt-3 border-t border-slate-800 bg-slate-950/80 rounded-b-xl text-left">
+                    {/* Multi-badge details header */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {/* Status Badge */}
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        log.type === "success" ? "bg-emerald-900/40 text-emerald-350 border border-emerald-800/40" :
+                        log.type === "error" ? "bg-rose-950/40 text-rose-350 border border-rose-800/40" :
+                        "bg-blue-950/40 text-blue-350 border border-blue-800/40"
+                      }`}>
+                        Status: {
+                          log.type === "success" ? "posted" :
+                          log.type === "error" ? "failed" :
+                          "pending"
+                        }
+                      </span>
+
+                      {/* Workflow Type Badge */}
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-slate-300 border border-slate-800">
+                        Type: {
+                          (log.message + " " + (log.details || "")).toLowerCase().includes("trend") 
+                            ? "Google Trends Posting" 
+                            : "Google Sheet Posting"
+                        }
+                      </span>
+
+                      {/* AI Tone Style Badge */}
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-955/40 text-violet-300 border border-violet-800/40 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Style: {
+                          (() => {
+                            const combined = (log.message + " " + (log.details || "")).toLowerCase();
+                            if (combined.includes("gen z")) return "Gen Z style";
+                            if (combined.includes("professional")) return "Professional standard";
+                            if (combined.includes("funny")) return "Funny / Witty";
+                            if (combined.includes("luxury")) return "Luxury branding";
+                            if (combined.includes("minimal")) return "Minimalist style";
+                            if (combined.includes("sales")) return "Sales pitch";
+                            return "Standard copy";
+                          })()
+                        }</span>
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                      {/* Log description metadata */}
+                      <div className="lg:col-span-7 space-y-3">
+                        <div className="p-3.5 bg-slate-900/60 border border-slate-850 rounded-xl space-y-2">
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <span>TIMELINE SCHEDULE</span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                            <div>
+                              <span className="text-slate-500 block text-[9px] uppercase">Scheduled Time</span>
+                              <span className="text-slate-300">
+                                {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block text-[9px] uppercase">Posted Time</span>
+                              <span className="text-slate-300">
+                                {log.type === "success" 
+                                  ? `${new Date(log.timestamp).toLocaleDateString()} ${new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}`
+                                  : "Awaiting Dispatch"
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
                         <div>
                           <span className="text-[10px] text-slate-500 font-mono uppercase tracking-wider block mb-1">Payload Content / Response:</span>
-                          <p className="p-3 bg-slate-900 border border-slate-850 text-xs font-mono text-slate-300 rounded-lg whitespace-pre-wrap leading-relaxed max-h-[160px] overflow-y-auto">
-                            {log.details}
+                          <p className="p-3.5 bg-slate-900 border border-slate-850 text-xs font-mono text-slate-300 rounded-xl whitespace-pre-wrap leading-relaxed max-h-[160px] overflow-y-auto">
+                            {log.details || "No supplementary JSON payload transmitted for this execution step."}
                           </p>
                         </div>
-                      )}
-
-                      <div className="flex items-center gap-4 text-[10px] text-slate-500 mt-2">
-                        <span>Status: <strong className="text-slate-400 uppercase font-mono">{log.type}</strong></span>
-                        <span>•</span>
-                        <span>Full stamp: <span className="font-mono">{log.timestamp}</span></span>
                       </div>
+
+                      {/* Mock Interactive Post Preview Card */}
+                      <div className="lg:col-span-5 flex flex-col">
+                        <span className="text-[10px] text-slate-500 font-mono uppercase tracking-wider block mb-1">Facebook Draft Caption Preview:</span>
+                        <div className="flex-1 bg-slate-900/85 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between text-left shadow-inner">
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-black">
+                                F
+                              </div>
+                              <div>
+                                <h5 className="text-[11px] font-bold text-white leading-tight">Selected Page Dispatcher</h5>
+                                <span className="text-[9px] text-slate-500 flex items-center gap-0.5 leading-none mt-0.5">
+                                  <span>Generated by Groq AI</span>
+                                  <span>• Public</span>
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <p className="text-slate-300 text-xs line-clamp-5 leading-normal italic select-all cursor-pointer font-sans">
+                              {log.details && log.details.length > 10 ? (
+                                log.details.includes("{") ? "Draft caption nested in API JSON payload details..." : log.details
+                              ) : log.message || "Awaiting drafting parameters..."}
+                            </p>
+                          </div>
+
+                          <div className="mt-4 pt-2.5 border-t border-slate-850 flex items-center justify-between">
+                            <span className="text-[10px] text-slate-500 font-mono">1 Likes • 0 Comments</span>
+                            <button
+                              onClick={() => {
+                                const caption = log.details || log.message;
+                                navigator.clipboard.writeText(caption);
+                                alert("Success: Caption copied to clipboard!");
+                              }}
+                              className="px-2.5 py-1 bg-slate-850 hover:bg-slate-800 hover:text-white transition rounded-md text-[10px] font-bold text-slate-400 flex items-center gap-1 cursor-pointer"
+                            >
+                              <Copy className="w-3 h-3" />
+                              <span>Copy Draft</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[9px] text-slate-500 mt-4 pt-3.5 border-t border-slate-900 font-mono">
+                      <span>FLOW RUN ID: <strong className="text-slate-450 uppercase">{log.id}</strong></span>
+                      <span>STATUS LEVEL: <span className="text-slate-400 font-bold uppercase">{log.type}</span></span>
                     </div>
                   </div>
                 )}
