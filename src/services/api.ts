@@ -58,8 +58,14 @@ export const workflowService = {
 
   // Start automation
   startWorkflow: async (payload?: { sheetUrl: string; selectedPages: { id: string; name: string; access_token?: string }[] }): Promise<{ success: boolean; isWorkflowRunning: boolean }> => {
-    const response = await api.post<{ success: boolean; isWorkflowRunning: boolean }>("/workflow/start", payload);
-    return response.data;
+    const response = await axios.post(
+      "https://doankiet.app.n8n.cloud/webhook/auto-post",
+      {
+        sheetUrl: payload?.sheetUrl,
+        selectedPages: payload?.selectedPages
+      }
+    );
+    return { success: true, isWorkflowRunning: false };
   },
 
   // Stop automation
