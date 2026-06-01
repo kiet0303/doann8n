@@ -284,27 +284,16 @@ export default function App() {
       localStorage.setItem("fb_selected_pages", JSON.stringify(selectedPageIds));
       localStorage.setItem("fb_sheet_url", googleSheetUrl);
 
-      // Sync selected page IDs with backend configuration before starting
-      await workflowService.updateConfig(googleSheetUrl, selectedPageIds);
+      const selectedPagesData = pages
+        .filter(p => selectedPageIds.includes(p.id))
+        .map(p => ({ id: p.id, name: p.name, access_token: (p as any).access_token }));
 
-      const activePagesPayload = pages
-        .filter((page) => selectedPageIds.includes(page.id))
-        .map((page) => ({
-          id: page.id,
-          name: page.name,
-          access_token: page.access_token || page.accessToken || "EAAUxb_mock_access_token_for_n8n"
-        }));
-
-      const payload = {
+      await workflowService.startWorkflow({
         sheetUrl: googleSheetUrl,
-        selectedPages: activePagesPayload
-      };
+        selectedPages: selectedPagesData
+      });
 
-      const res = await workflowService.startWorkflow(payload);
-      if (res.success) {
-        setIsWorkflowRunning(res.isWorkflowRunning);
-        await syncState(false);
-      }
+      setIsWorkflowRunning(true);
     } catch (err: any) {
       setApiError(err.response?.data?.message || "Failed to start workflow engine.");
     }
