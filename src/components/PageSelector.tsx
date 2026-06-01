@@ -7,23 +7,62 @@ interface PageSelectorProps {
   selectedPageIds: string[];
   onTogglePage: (id: string) => void;
   isFbConnected: boolean;
+  onSelectPages?: (ids: string[]) => void;
 }
 
-export default function PageSelector({ pages, selectedPageIds, onTogglePage, isFbConnected }: PageSelectorProps) {
+export default function PageSelector({
+  pages,
+  selectedPageIds,
+  onTogglePage,
+  isFbConnected,
+  onSelectPages,
+}: PageSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredPages = pages.filter((page) =>
     page.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleSelectAll = () => {
+    if (onSelectPages) {
+      const targetPages = searchQuery ? filteredPages : pages;
+      onSelectPages(targetPages.map((p) => p.id));
+    }
+  };
+
+  const handleDeselectAll = () => {
+    if (onSelectPages) {
+      onSelectPages([]);
+    }
+  };
+
   return (
     <div className="bg-white border border-[#E2E8F0] rounded-xl flex flex-col h-full max-h-[500px] overflow-hidden text-slate-800">
       {/* Sleek Header */}
-      <div className="p-5 border-b border-[#E2E8F0] flex justify-between items-center bg-white shadow-[0_1px_2px_rgba(0,0,0,0.01)] shrink-0">
-        <h2 className="text-base font-semibold text-slate-900 margin-0">Select Pages</h2>
-        <span className="text-xs text-[#2563EB] font-semibold">
-          {selectedPageIds.length} Selected
-        </span>
+      <div className="p-5 border-b border-[#E2E8F0] flex flex-col gap-2.5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.01)] shrink-0">
+        <div className="flex justify-between items-center">
+          <h2 className="text-base font-semibold text-slate-900 margin-0">Select Pages</h2>
+          <span className="text-xs text-[#2563EB] font-semibold">
+            {selectedPageIds.length} Selected
+          </span>
+        </div>
+        
+        {isFbConnected && onSelectPages && (
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={handleSelectAll}
+              className="flex-1 py-1 px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold border border-blue-200 rounded-md transition cursor-pointer select-none text-center"
+            >
+              Select All
+            </button>
+            <button
+              onClick={handleDeselectAll}
+              className="flex-1 py-1 px-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200 rounded-md transition cursor-pointer select-none text-center"
+            >
+              Deselect All
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter / Search Bar */}

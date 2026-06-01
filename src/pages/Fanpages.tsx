@@ -6,6 +6,7 @@ interface FanpagesProps {
   pages: FacebookPage[];
   selectedPageIds: string[];
   onTogglePage: (id: string) => void;
+  onSelectPages?: (ids: string[]) => void;
   isFbConnected: boolean;
   onConnectFb: () => void;
 }
@@ -14,6 +15,7 @@ export default function Fanpages({
   pages,
   selectedPageIds,
   onTogglePage,
+  onSelectPages,
   isFbConnected,
   onConnectFb,
 }: FanpagesProps) {
@@ -75,52 +77,55 @@ export default function Fanpages({
     }
   };
 
+  const handleSelectAll = () => {
+    if (onSelectPages) {
+      const allIds = processedPages.map((p) => p.id);
+      onSelectPages(allIds);
+    }
+  };
+
+  const handleDeselectAll = () => {
+    if (onSelectPages) {
+      onSelectPages([]);
+    }
+  };
+
   return (
     <div className="space-y-6 text-slate-850">
-      {/* Upper info section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 border border-[#E2E8F0] rounded-xl shadow-sm">
-        <div className="space-y-1">
-          <span className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider block">Integrations Portal</span>
-          <h2 className="font-sans font-bold text-xl text-slate-900 tracking-tight">
-            Facebook Fanpages
-          </h2>
-          <p className="text-[#64748B] text-xs font-medium">
-            Review detailed analytical metrics for integrated Fanpages and modify targeted broadcast feeds.
-          </p>
-        </div>
-
-        {/* Aggregate Reach Cards layout */}
-        <div className="flex flex-wrap items-center gap-4 shrink-0">
-          <div className="px-5 py-3 border border-[#E2E8F0] bg-white rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <span className="text-[10px] text-[#64748B] font-bold uppercase tracking-wide block">Total Fan Reach</span>
-            <span className="font-mono text-base font-bold text-slate-950 mt-1 block">
-              {isFbConnected ? statsSummary.aggregateLikes.toLocaleString() : "0"} Likes
-            </span>
-          </div>
-          <div className="px-5 py-3 border border-[#E2E8F0]/80 bg-[#EFF6FF] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <span className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wide block">Active Targets Reach</span>
-            <span className="font-mono text-base font-bold text-[#2563EB] mt-1 block">
-              {isFbConnected ? statsSummary.activeLikes.toLocaleString() : "0"} Likes
-            </span>
-          </div>
-        </div>
-      </div>
-
       {isFbConnected ? (
         <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden animate-fade-in">
           {/* List Toolbar control */}
-          <div className="p-5 border-b border-[#E2E8F0] bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="relative w-full sm:max-w-xs shrink-0">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                <Search className="w-4 h-4 text-slate-400" />
+          <div className="p-5 border-b border-[#E2E8F0] bg-slate-50/50 flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:max-w-2xl shrink-0">
+              <div className="relative w-full sm:max-w-xs shrink-0">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                  <Search className="w-4 h-4 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Lookup fanpages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-xs border border-[#CBD5E1] bg-white rounded-lg focus:border-[#2563EB] outline-none transition"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Lookup fanpages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs border border-[#CBD5E1] bg-white rounded-lg focus:border-[#2563EB] outline-none transition"
-              />
+
+              {onSelectPages && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSelectAll}
+                    className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-[0.98]"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={handleDeselectAll}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-[0.98]"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2 self-stretch sm:self-auto overflow-x-auto text-xs font-medium">

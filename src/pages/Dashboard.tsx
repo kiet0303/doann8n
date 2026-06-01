@@ -1,8 +1,6 @@
 import React from "react";
 import WorkflowForm from "../components/WorkflowForm";
 import PageSelector from "../components/PageSelector";
-import LogsPanel from "../components/LogsPanel";
-import WorkflowSteps from "../components/WorkflowSteps";
 import { FacebookPage, WorkflowLog } from "../types";
 
 interface DashboardProps {
@@ -15,6 +13,7 @@ interface DashboardProps {
   pages: FacebookPage[];
   selectedPageIds: string[];
   onTogglePage: (id: string) => void;
+  onSelectPages?: (ids: string[]) => void;
   onStartWorkflow: (config?: {
     mode: "sheet" | "trend";
     trendKeyword?: string;
@@ -40,6 +39,7 @@ export default function Dashboard({
   pages,
   selectedPageIds,
   onTogglePage,
+  onSelectPages,
   onStartWorkflow,
   onStopWorkflow,
   logs,
@@ -72,20 +72,6 @@ export default function Dashboard({
             isLoading={isLoading}
             pages={pages}
           />
-
-          {/* 2. AI Workflow Status Monitor */}
-          <WorkflowSteps
-            isWorkflowRunning={isWorkflowRunning}
-            logs={logs}
-          />
-
-          {/* 3. Real-time log stream */}
-          <LogsPanel
-            logs={logs}
-            onClearLogs={onClearLogs}
-            isWorkflowRunning={isWorkflowRunning}
-            onRefresh={onRefreshLogs}
-          />
         </div>
 
         {/* Right Column (Select Pages selector catalog) */}
@@ -94,6 +80,7 @@ export default function Dashboard({
             pages={pages}
             selectedPageIds={selectedPageIds}
             onTogglePage={onTogglePage}
+            onSelectPages={onSelectPages}
             isFbConnected={isFbConnected}
           />
         </div>

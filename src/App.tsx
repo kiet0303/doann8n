@@ -243,6 +243,12 @@ export default function App() {
     localStorage.setItem("fb_selected_pages", JSON.stringify(updatedPageIds));
   };
 
+  // Batch update target list
+  const handleSelectPages = (ids: string[]) => {
+    setSelectedPageIds(ids);
+    localStorage.setItem("fb_selected_pages", JSON.stringify(ids));
+  };
+
   // Start automation trigger loop with complete n8n payload structure
   const handleStartWorkflow = async (config?: {
     mode: "sheet" | "trend";
@@ -342,6 +348,7 @@ export default function App() {
             pages={pages}
             selectedPageIds={selectedPageIds}
             onTogglePage={handleTogglePage}
+            onSelectPages={handleSelectPages}
             onStartWorkflow={handleStartWorkflow}
             onStopWorkflow={handleStopWorkflow}
             logs={logs}
@@ -357,6 +364,7 @@ export default function App() {
             pages={pages}
             selectedPageIds={selectedPageIds}
             onTogglePage={handleTogglePage}
+            onSelectPages={handleSelectPages}
             isFbConnected={isFbConnected}
             onConnectFb={handleConnectFb}
           />
