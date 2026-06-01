@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link2, Play, Square, Facebook, Loader2, AlertCircle, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { FacebookPage } from "../types";
 
@@ -29,6 +29,12 @@ export default function WorkflowForm({
 }: WorkflowFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [localSheetUrl, setLocalSheetUrl] = useState(googleSheetUrl);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    setLocalSheetUrl(googleSheetUrl);
+  }, [googleSheetUrl]);
 
   // Validate inputs before starting
   const handleStart = () => {
@@ -74,12 +80,25 @@ export default function WorkflowForm({
         </label>
         <input
           type="text"
-          value={googleSheetUrl}
-          onChange={(e) => onUrlChange(e.target.value)}
+          value={localSheetUrl}
+          onChange={(e) => setLocalSheetUrl(e.target.value)}
           disabled={isWorkflowRunning}
           placeholder="Paste Google Sheets URL"
           className="w-full px-3 py-2.5 border border-[#CBD5E1] rounded-lg text-sm bg-[#F8FAFC] focus:bg-white focus:border-[#2563EB] outline-none transition disabled:opacity-60"
         />
+        <button
+          onClick={() => {
+            onUrlChange(localSheetUrl);
+            setIsSaved(true);
+            setTimeout(() => setIsSaved(false), 2000);
+          }}
+          disabled={localSheetUrl === googleSheetUrl || !localSheetUrl}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg 
+                     disabled:opacity-40 disabled:cursor-not-allowed 
+                     hover:bg-blue-700 transition-colors"
+        >
+          {isSaved ? "✓ Đã lưu!" : "Lưu URL"}
+        </button>
         <span className="text-[10px] text-slate-400 font-medium">
           Drives row extractions. Maps columns: <code>[Topic]</code>, <code>[Status]</code>, <code>[PostedAt]</code>.
         </span>

@@ -14,12 +14,26 @@ import Settings from "./pages/Settings";
 
 export default function App() {
   const [currentTab, setTab] = useState<string>("dashboard");
-  const [pages, setPages] = useState<FacebookPage[]>([]);
+  const [pages, setPages] = useState<FacebookPage[]>(
+    () => {
+      const saved = localStorage.getItem("fb_pages");
+      return saved ? JSON.parse(saved) : [];
+    }
+  );
   const [logs, setLogs] = useState<WorkflowLog[]>([]);
-  const [isFbConnected, setIsFbConnected] = useState<boolean>(false);
+  const [isFbConnected, setIsFbConnected] = useState<boolean>(
+    () => localStorage.getItem("fb_connected") === "true"
+  );
   const [isWorkflowRunning, setIsWorkflowRunning] = useState<boolean>(false);
-  const [googleSheetUrl, setGoogleSheetUrl] = useState<string>("");
-  const [selectedPageIds, setSelectedPageIds] = useState<string[]>([]);
+  const [googleSheetUrl, setGoogleSheetUrl] = useState<string>(
+    () => localStorage.getItem("fb_sheet_url") || ""
+  );
+  const [selectedPageIds, setSelectedPageIds] = useState<string[]>(
+    () => {
+      const saved = localStorage.getItem("fb_selected_pages");
+      return saved ? JSON.parse(saved) : [];
+    }
+  );
   const [stats, setStats] = useState<WorkflowStats>({
     connectedPagesCount: 0,
     pendingPostsCount: 0,
@@ -82,8 +96,17 @@ export default function App() {
         const parsed = JSON.parse(savedPages);
         setIsFbConnected(true);
         setPages(parsed);
-        setSelectedPageIds(parsed.map((p: any) => p.id));
+        
+        const savedSelectedIds = localStorage.getItem("fb_selected_pages");
+        if (savedSelectedIds) {
+          setSelectedPageIds(JSON.parse(savedSelectedIds));
+        } else {
+          setSelectedPageIds(parsed.map((p: any) => p.id));
+        }
       }
+      
+      const savedSheetUrl = localStorage.getItem("fb_sheet_url");
+      if (savedSheetUrl) setGoogleSheetUrl(savedSheetUrl);
     });
   }, [syncState]);
 
@@ -133,6 +156,7 @@ export default function App() {
             
             localStorage.setItem("fb_connected", "true");
             localStorage.setItem("fb_pages", JSON.stringify(syncRes.pages));
+            localStorage.setItem("fb_selected_pages", JSON.stringify(allPageIds));
             
             // Clean up config targets
             await workflowService.updateConfig(googleSheetUrl, allPageIds);
@@ -215,6 +239,8 @@ export default function App() {
         setSelectedPageIds([]);
         localStorage.removeItem("fb_connected");
         localStorage.removeItem("fb_pages");
+        localStorage.removeItem("fb_selected_pages");
+        localStorage.removeItem("fb_sheet_url");
         await syncState(false);
       }
     } catch (err: any) {
@@ -227,6 +253,7 @@ export default function App() {
   // Google Sheet URL custom update with backend dispatch persistence
   const handleUrlChange = async (url: string) => {
     setGoogleSheetUrl(url);
+    localStorage.setItem("fb_sheet_url", url);
     try {
       // Save directly to Express session state store
       await workflowService.updateConfig(url, selectedPageIds);
@@ -244,20 +271,16 @@ export default function App() {
       updatedPageIds = [...selectedPageIds, id];
     }
     setSelectedPageIds(updatedPageIds);
-
-    try {
-      await workflowService.updateConfig(googleSheetUrl, updatedPageIds);
-      // Synchronize in-memory stats immediately
-      await syncState(false);
-    } catch (err) {
-      console.error("Failed to commit target state:", err);
-    }
+    localStorage.setItem("fb_selected_pages", JSON.stringify(updatedPageIds));
   };
 
   // Start automation trigger loop with complete n8n payload structure
   const handleStartWorkflow = async () => {
     setApiError(null);
     try {
+      // Sync selected page IDs with backend configuration before starting
+      await workflowService.updateConfig(googleSheetUrl, selectedPageIds);
+
       const activePagesPayload = pages
         .filter((page) => selectedPageIds.includes(page.id))
         .map((page) => ({
