@@ -47,47 +47,17 @@ export interface WorkflowLog {
 // Global mutable state object to maintain ES Module live bindings
 export const state = {
   isFbConnected: false,
-  googleSheetUrl: "https://docs.google.com/spreadsheets/d/1X45fG9H-automation-template/edit",
-  selectedPageIds: ["pg_1", "pg_3"],
+  googleSheetUrl: "",
+  selectedPageIds: [] as string[],
   isWorkflowRunning: false,
-  postedContentCount: 24,
-  pendingPostsCount: 5,
+  postedContentCount: 0,
+  pendingPostsCount: 0,
   currentSheetIndex: 0,
   lastStepTime: 0,
   
-  fbPages: [
-    { id: "pg_1", name: "TechCraft Insights", category: "Technology", followers: 14500, pictureUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=80&h=80&fit=crop", connected: false },
-    { id: "pg_2", name: "Organic Growth Blueprint", category: "Marketing", followers: 8200, pictureUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=80&h=80&fit=crop", connected: false },
-    { id: "pg_3", name: "AI Automation Hub", category: "Scientific Community", followers: 23100, pictureUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=80&h=80&fit=crop", connected: false },
-    { id: "pg_4", name: "SaaS Builders Club", category: "Entrepreneurship", followers: 11000, pictureUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=80&h=80&fit=crop", connected: false },
-    { id: "pg_5", name: "Creative Content Lab", category: "Digital agency", followers: 6400, pictureUrl: "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=80&h=80&fit=crop", connected: false },
-    { id: "pg_6", name: "Social Media Strategy Hacks", category: "Consulting", followers: 9800, pictureUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=80&h=80&fit=crop", connected: false }
-  ] as FacebookPage[],
+  fbPages: [] as FacebookPage[],
 
-  logs: [
-    {
-      id: "log_init_1",
-      timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-      type: "info",
-      message: "AutoFB Workflow Daemon initialized.",
-      details: "Listening for automated webhook notifications and scheduled cron task updates."
-    },
-    {
-      id: "log_init_2",
-      timestamp: new Date(Date.now() - 3600000 * 1.9).toISOString(),
-      type: "success",
-      message: "Connection to Facebook Fanpage Graph Gateway verified.",
-      details: "OAuth session token valid for 59 days."
-    },
-    {
-      id: "log_init_3",
-      timestamp: new Date(Date.now() - 3600000 * 1.5).toISOString(),
-      type: "success",
-      message: "Archived Campaign Posted: 'Welcome to the Future of Low-Code Automation'",
-      details: "Posted to TechCraft Insights & AI Automation Hub. Reach: 2,400+ organic impressions.",
-      pageId: "pg_1"
-    }
-  ] as WorkflowLog[]
+  logs: [] as WorkflowLog[]
 };
 
 export const googleSheetRows = [

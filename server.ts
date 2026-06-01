@@ -52,48 +52,18 @@ interface WorkflowLog {
 }
 
 // Initial Mock Facebook Pages
-let fbPages: FacebookPage[] = [
-  { id: "pg_1", name: "TechCraft Insights", category: "Technology", followers: 14500, pictureUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=80&h=80&fit=crop", connected: false },
-  { id: "pg_2", name: "Organic Growth Blueprint", category: "Marketing", followers: 8200, pictureUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=80&h=80&fit=crop", connected: false },
-  { id: "pg_3", name: "AI Automation Hub", category: "Scientific Community", followers: 23100, pictureUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=80&h=80&fit=crop", connected: false },
-  { id: "pg_4", name: "SaaS Builders Club", category: "Entrepreneurship", followers: 11000, pictureUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=80&h=80&fit=crop", connected: false },
-  { id: "pg_5", name: "Creative Content Lab", category: "Digital agency", followers: 6400, pictureUrl: "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=80&h=80&fit=crop", connected: false },
-  { id: "pg_6", name: "Social Media Strategy Hacks", category: "Consulting", followers: 9800, pictureUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=80&h=80&fit=crop", connected: false }
-];
+let fbPages: FacebookPage[] = [];
 
 // Seed Logs representing historical postings
-let logs: WorkflowLog[] = [
-  {
-    id: "log_init_1",
-    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-    type: "info",
-    message: "AutoFB Workflow Daemon initialized.",
-    details: "Listening for automated webhook notifications and scheduled cron task updates."
-  },
-  {
-    id: "log_init_2",
-    timestamp: new Date(Date.now() - 3600000 * 1.9).toISOString(),
-    type: "success",
-    message: "Connection to Facebook Fanpage Graph Gateway verified.",
-    details: "OAuth session token valid for 59 days."
-  },
-  {
-    id: "log_init_3",
-    timestamp: new Date(Date.now() - 3600000 * 1.5).toISOString(),
-    type: "success",
-    message: "Archived Campaign Posted: 'Welcome to the Future of Low-Code Automation'",
-    details: "Posted to TechCraft Insights & AI Automation Hub. Reach: 2,400+ organic impressions.",
-    pageId: "pg_1"
-  }
-];
+let logs: WorkflowLog[] = [];
 
 // Workflow Configuration
 let isFbConnected = false;
-let googleSheetUrl = "https://docs.google.com/spreadsheets/d/1X45fG9H-automation-template/edit";
-let selectedPageIds: string[] = ["pg_1", "pg_3"];
+let googleSheetUrl = "";
+let selectedPageIds: string[] = [];
 let isWorkflowRunning = false;
-let postedContentCount = 24;
-let pendingPostsCount = 5;
+let postedContentCount = 0;
+let pendingPostsCount = 0;
 
 // Topics to read from the simulated Google Sheet
 const googleSheetRows = [
@@ -479,23 +449,14 @@ app.post("/api/workflow/reset", (req, res) => {
     clearInterval(backgroundInterval);
     backgroundInterval = null;
   }
-  isFbConnected = true;
-  googleSheetUrl = "https://docs.google.com/spreadsheets/d/1X45fG9H-automation-template/edit";
-  selectedPageIds = ["pg_1", "pg_3"];
-  postedContentCount = 24;
-  pendingPostsCount = 5;
+  isFbConnected = false;
+  googleSheetUrl = "";
+  selectedPageIds = [];
+  postedContentCount = 0;
+  pendingPostsCount = 0;
   currentSheetIndex = 0;
-  fbPages = fbPages.map(p => ({ ...p, connected: true }));
-  logs = [
-    {
-      id: "log_reset",
-      timestamp: new Date().toISOString(),
-      type: "info",
-      message: "Dashboard and parameters reset to default state.",
-      details: "Database hydrated with fresh mock pages and configuration presets."
-    }
-  ];
-  addLog("success", "Mock Database re-hydrated beautifully.");
+  fbPages = [];
+  logs = [];
   res.json({
     success: true,
     isFbConnected,
@@ -505,9 +466,9 @@ app.post("/api/workflow/reset", (req, res) => {
     pages: fbPages,
     logs,
     stats: {
-      connectedPagesCount: 2,
-      pendingPostsCount: 5,
-      postedContentCount: 24,
+      connectedPagesCount: 0,
+      pendingPostsCount: 0,
+      postedContentCount: 0,
     }
   });
 });

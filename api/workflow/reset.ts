@@ -13,25 +13,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   state.isWorkflowRunning = false;
   state.lastStepTime = 0;
-  state.isFbConnected = true;
-  state.googleSheetUrl = "https://docs.google.com/spreadsheets/d/1X45fG9H-automation-template/edit";
-  state.selectedPageIds = ["pg_1", "pg_3"];
-  state.postedContentCount = 24;
-  state.pendingPostsCount = 5;
+  state.isFbConnected = false;
+  state.googleSheetUrl = "";
+  state.selectedPageIds = [];
+  state.postedContentCount = 0;
+  state.pendingPostsCount = 0;
   state.currentSheetIndex = 0;
-  state.fbPages = state.fbPages.map((p) => ({ ...p, connected: true }));
-  
-  state.logs = [
-    {
-      id: "log_reset",
-      timestamp: new Date().toISOString(),
-      type: "info",
-      message: "Dashboard and parameters reset to default state.",
-      details: "Database hydrated with fresh mock pages and configuration presets."
-    }
-  ];
-
-  addLog("success", "Mock Database re-hydrated beautifully.");
+  state.fbPages = [];
+  state.logs = [];
 
   return res.status(200).json({
     success: true,
@@ -42,9 +31,9 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     pages: state.fbPages,
     logs: state.logs,
     stats: {
-      connectedPagesCount: 2,
-      pendingPostsCount: 5,
-      postedContentCount: 24,
+      connectedPagesCount: 0,
+      pendingPostsCount: 0,
+      postedContentCount: 0,
     }
   });
 }

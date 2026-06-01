@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FileSpreadsheet, Server, RefreshCw, Layers, Lock } from "lucide-react";
 
 interface SettingsProps {
@@ -19,6 +19,20 @@ export default function Settings({
   isWorkflowRunning,
 }: SettingsProps) {
   const [redirectUri, setRedirectUri] = useState("https://doann8n.vercel.app/");
+  const [localUrl, setLocalUrl] = useState(googleSheetUrl);
+  const [showSaved, setShowSaved] = useState(false);
+
+  useEffect(() => {
+    setLocalUrl(googleSheetUrl);
+  }, [googleSheetUrl]);
+
+  const handleSave = () => {
+    onUrlChange(localUrl);
+    setShowSaved(true);
+    setTimeout(() => {
+      setShowSaved(false);
+    }, 2000);
+  };
 
   return (
     <div className="space-y-6 text-slate-850">
@@ -48,13 +62,27 @@ export default function Settings({
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-[#64748B] uppercase tracking-wide">Google Sheet Source Link</label>
-                <input
-                  type="text"
-                  value={googleSheetUrl}
-                  onChange={(e) => onUrlChange(e.target.value)}
-                  disabled={isWorkflowRunning}
-                  className="w-full px-3 py-2.5 border border-[#CBD5E1] rounded-lg text-xs bg-[#F8FAFC] focus:bg-white focus:border-[#2563EB] outline-none transition disabled:opacity-60"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={localUrl}
+                    onChange={(e) => setLocalUrl(e.target.value)}
+                    disabled={isWorkflowRunning}
+                    className="flex-1 px-3 py-2.5 border border-[#CBD5E1] rounded-lg text-xs bg-[#F8FAFC] focus:bg-white focus:border-[#2563EB] outline-none transition disabled:opacity-60"
+                  />
+                  <button
+                    onClick={handleSave}
+                    disabled={isWorkflowRunning || localUrl === googleSheetUrl}
+                    className="px-4 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 disabled:bg-[#2563EB] disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition duration-150 shrink-0"
+                  >
+                    Lưu
+                  </button>
+                </div>
+                {showSaved && (
+                  <span className="text-xs text-emerald-600 font-semibold animate-pulse">
+                    Đã lưu!
+                  </span>
+                )}
                 <span className="text-[10px] text-slate-400 font-medium leading-relaxed">
                   Maps row content elements to target publishing outputs. Mandatory columns: <code>[Topic]</code>, <code>[Status]</code>, <code>[PostedAt]</code>.
                 </span>
