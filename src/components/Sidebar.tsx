@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Terminal, Settings, Sliders, RefreshCw } from "lucide-react";
+import { LayoutDashboard, Users, Terminal, RefreshCw } from "lucide-react";
 
 interface SidebarProps {
   currentTab: string;
@@ -12,7 +12,6 @@ export default function Sidebar({ currentTab, setTab, isFbConnected, onReset }: 
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "fanpages", label: "Fanpages", icon: Users },
     { id: "logs", label: "Workflow Logs", icon: Terminal },
-    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (

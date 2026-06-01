@@ -10,7 +10,6 @@ import { workflowService } from "./services/api";
 import Dashboard from "./pages/Dashboard";
 import Fanpages from "./pages/Fanpages";
 import WorkflowLogs from "./pages/WorkflowLogs";
-import Settings from "./pages/Settings";
 
 export default function App() {
   const [currentTab, setTab] = useState<string>("dashboard");
@@ -355,7 +354,6 @@ export default function App() {
       case "dashboard":
         return (
           <Dashboard
-            stats={stats}
             isWorkflowRunning={isWorkflowRunning}
             isFbConnected={isFbConnected}
             googleSheetUrl={googleSheetUrl}
@@ -393,17 +391,7 @@ export default function App() {
             onRefresh={() => syncState(false)}
           />
         );
-      case "settings":
-        return (
-          <Settings
-            googleSheetUrl={googleSheetUrl}
-            onUrlChange={handleUrlChange}
-            isFbConnected={isFbConnected}
-            onDisconnectFb={handleDisconnectFb}
-            onReset={handleDevReset}
-            isWorkflowRunning={isWorkflowRunning}
-          />
-        );
+
       default:
         return <div className="text-center py-20">View not found</div>;
     }
