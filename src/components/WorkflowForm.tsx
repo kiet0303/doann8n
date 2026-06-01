@@ -97,7 +97,6 @@ export default function WorkflowForm({
       trendKeyword: workflowMode === "trend" ? trendCategory : undefined,
       numPosts: 1, // simplified to 1 post for stable demo
       aiStyle: workflowMode === "trend" ? aiStyle : undefined,
-      scheduleTime: workflowMode === "trend" ? (scheduleTime || undefined) : undefined,
     });
 
     if (workflowMode === "sheet") {
@@ -232,7 +231,7 @@ export default function WorkflowForm({
         )}
 
         {workflowMode === "trend" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Trend Category input */}
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-extrabold text-[#64748B] uppercase tracking-wide">Category</span>
@@ -269,22 +268,6 @@ export default function WorkflowForm({
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* Schedule time */}
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-extrabold text-[#64748B] uppercase tracking-wide">Schedule</span>
-              <input
-                id="trend-schedule-input"
-                type="datetime-local"
-                value={scheduleTime}
-                onChange={(e) => {
-                  setScheduleTime(e.target.value);
-                  localStorage.setItem("fb_schedule_time", e.target.value);
-                }}
-                disabled={isWorkflowRunning}
-                className="w-full px-2 py-1 border border-[#CBD5E1] rounded-lg text-[10px] bg-white focus:border-[#2563EB] outline-none transition disabled:opacity-60 font-mono text-slate-700"
-              />
             </div>
           </div>
         )}
