@@ -25,6 +25,7 @@ export const workflowService = {
   // Submit actual Facebook authorization code to n8n webhook
   submitFacebookCode: async (code: string): Promise<{ success: boolean; pages: FacebookPage[] }> => {
     const response = await axios.post("https://doankiet.app.n8n.cloud/webhook/facebook-pages", { code });
+    console.log("=== N8N RAW RESPONSE ===", JSON.stringify(response.data, null, 2));
     return response.data;
   },
 
