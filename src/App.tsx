@@ -114,6 +114,7 @@ export default function App() {
         if (pagesList && pagesList.length > 0) {
           // Sync with local application memory state and session cache
           const syncRes = await workflowService.saveConnectedPages(pagesList);
+          console.log("=== SYNC RES ===", JSON.stringify(syncRes, null, 2));
           
           if (syncRes.success) {
             setIsFbConnected(true);
