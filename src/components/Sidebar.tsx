@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Terminal, RefreshCw } from "lucide-react";
+import { LayoutDashboard, Users } from "lucide-react";
 
 interface SidebarProps {
   currentTab: string;
@@ -11,7 +11,6 @@ export default function Sidebar({ currentTab, setTab, isFbConnected, onReset }: 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "fanpages", label: "Fanpages", icon: Users },
-    { id: "logs", label: "Workflow Logs", icon: Terminal },
   ];
 
   return (
@@ -54,38 +53,6 @@ export default function Sidebar({ currentTab, setTab, isFbConnected, onReset }: 
           );
         })}
       </nav>
-
-      {/* Quota Tracker Component */}
-      <div className="p-4 bg-white/3 mx-4 mb-4 rounded-xl text-[11px] border border-white/5">
-        <div className="opacity-60 font-semibold uppercase tracking-wider mb-2 text-[10px] text-slate-300">
-          QUOTA USAGE
-        </div>
-        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-          <div className="w-[65%] h-full bg-[#2563EB] rounded-full"></div>
-        </div>
-        <div className="mt-2.5 flex justify-between text-[11px] font-medium text-slate-350">
-          <span>6,500 / 10k posts</span>
-          <span>65%</span>
-        </div>
-      </div>
-
-      {/* Admin Utility panel */}
-      <div className="p-4 border-t border-slate-800 bg-[#070b14]">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
-            <span>Dev Actions</span>
-            <span className="font-mono text-[9px] text-slate-600 bg-slate-900 px-1 py-0.5 rounded">v2.4 Production</span>
-          </div>
-          <button
-            onClick={onReset}
-            className="flex items-center justify-center gap-2 w-full px-3 py-2 text-xs border border-slate-800 hover:border-slate-700 bg-slate-900 hover:bg-slate-800 hover:text-white text-slate-400 rounded-lg transition-all duration-150 cursor-pointer"
-            title="Hydrate and restore dummy database configs"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Developer Reset</span>
-          </button>
-        </div>
-      </div>
     </aside>
   );
 }

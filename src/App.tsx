@@ -9,7 +9,6 @@ import { workflowService } from "./services/api";
 // Page View modules
 import Dashboard from "./pages/Dashboard";
 import Fanpages from "./pages/Fanpages";
-import WorkflowLogs from "./pages/WorkflowLogs";
 
 export default function App() {
   const [currentTab, setTab] = useState<string>("dashboard");
@@ -24,6 +23,7 @@ export default function App() {
     () => localStorage.getItem("fb_connected") === "true"
   );
   const [isWorkflowRunning, setIsWorkflowRunning] = useState<boolean>(false);
+  const [workflowStatus, setWorkflowStatus] = useState<"idle" | "running" | "success" | "error">("idle");
   const [googleSheetUrl, setGoogleSheetUrl] = useState<string>(
     () => localStorage.getItem("fb_sheet_url") || ""
   );
@@ -61,26 +61,15 @@ export default function App() {
     if (showIndicator) setIsLoading(true);
     setApiError(null);
     try {
-      // Parallelize fetches of pages, status, and logs for fast cold loadings
-      const [statusRes, pagesRes, logsRes] = await Promise.all([
-        workflowService.getStatus(),
-        workflowService.getPages(),
-        workflowService.getLogs(),
-      ]);
-
-      setIsFbConnected(statusRes.isFbConnected);
-      setIsWorkflowRunning(statusRes.isWorkflowRunning);
-      setGoogleSheetUrl(statusRes.googleSheetUrl);
-      setSelectedPageIds(statusRes.selectedPageIds);
-      setStats(statusRes.stats);
-      setPages(pagesRes.pages);
-      setLogs(logsRes.logs);
-    } catch (err: any) {
-      console.error("API Synchronization failed:", err);
-      setApiError(
-        err.response?.data?.message || 
-        "Failed to communicate with Express API. Verify server port binding."
-      );
+      const savedConnected = localStorage.getItem("fb_connected") === "true";
+      const savedPages = JSON.parse(localStorage.getItem("fb_pages") || "[]");
+      const savedSelectedIds = JSON.parse(localStorage.getItem("fb_selected_pages") || "[]");
+      const savedSheetUrl = localStorage.getItem("fb_sheet_url") || "";
+      
+      setIsFbConnected(savedConnected);
+      setPages(savedPages);
+      setSelectedPageIds(savedSelectedIds);
+      setGoogleSheetUrl(savedSheetUrl);
     } finally {
       setIsLoading(false);
     }
@@ -88,25 +77,7 @@ export default function App() {
 
   // Hydrate initial configurations on mount
   useEffect(() => {
-    syncState(true).then(() => {
-      const savedConnected = localStorage.getItem("fb_connected");
-      const savedPages = localStorage.getItem("fb_pages");
-      if (savedConnected === "true" && savedPages) {
-        const parsed = JSON.parse(savedPages);
-        setIsFbConnected(true);
-        setPages(parsed);
-        
-        const savedSelectedIds = localStorage.getItem("fb_selected_pages");
-        if (savedSelectedIds) {
-          setSelectedPageIds(JSON.parse(savedSelectedIds));
-        } else {
-          setSelectedPageIds(parsed.map((p: any) => p.id));
-        }
-      }
-      
-      const savedSheetUrl = localStorage.getItem("fb_sheet_url");
-      if (savedSheetUrl) setGoogleSheetUrl(savedSheetUrl);
-    });
+    syncState(true);
   }, [syncState]);
 
   // Handle Facebook OAuth code exchange
@@ -230,18 +201,17 @@ export default function App() {
   const handleDisconnectFb = async () => {
     setIsLoading(true);
     try {
-      const res = await workflowService.disconnectFacebook();
-      if (res.success) {
-        setIsFbConnected(res.isFbConnected);
-        setIsWorkflowRunning(false);
-        setPages(res.pages);
-        setSelectedPageIds([]);
-        localStorage.removeItem("fb_connected");
-        localStorage.removeItem("fb_pages");
-        localStorage.removeItem("fb_selected_pages");
-        localStorage.removeItem("fb_sheet_url");
-        await syncState(false);
-      }
+      localStorage.removeItem("fb_connected");
+      localStorage.removeItem("fb_pages");
+      localStorage.removeItem("fb_selected_pages");
+      localStorage.removeItem("fb_sheet_url");
+
+      setIsFbConnected(false);
+      setIsWorkflowRunning(false);
+      setPages([]);
+      setSelectedPageIds([]);
+      setGoogleSheetUrl("");
+      setWorkflowStatus("idle");
     } catch (err: any) {
       setApiError("Disconnecting Facebook returned an error.");
     } finally {
@@ -282,6 +252,8 @@ export default function App() {
     scheduleTime?: string;
   }) => {
     setApiError(null);
+    setWorkflowStatus("running");
+    setIsWorkflowRunning(true);
     try {
       // Save state to localStorage to prevent losing it on Serverless reset
       localStorage.setItem("fb_pages", JSON.stringify(pages));
@@ -293,7 +265,7 @@ export default function App() {
         .filter(p => selectedPageIds.includes(p.id))
         .map(p => ({ id: p.id, name: p.name, access_token: (p as any).access_token }));
 
-      await workflowService.startWorkflow({
+      const res = await workflowService.startWorkflow({
         mode: config?.mode || "sheet",
         sheetUrl: googleSheetUrl,
         selectedPages: selectedPagesData,
@@ -303,9 +275,16 @@ export default function App() {
         scheduleTime: config?.scheduleTime,
       });
 
-      setIsWorkflowRunning(true);
+      if (res && res.success) {
+        setWorkflowStatus("success");
+      } else {
+        setWorkflowStatus("error");
+      }
     } catch (err: any) {
+      setWorkflowStatus("error");
       setApiError(err.response?.data?.message || "Failed to start workflow engine.");
+    } finally {
+      setIsWorkflowRunning(false);
     }
   };
 
@@ -382,15 +361,7 @@ export default function App() {
             onConnectFb={handleConnectFb}
           />
         );
-      case "logs":
-        return (
-          <WorkflowLogs
-            logs={logs}
-            onClearLogs={handleClearLogs}
-            isWorkflowRunning={isWorkflowRunning}
-            onRefresh={() => syncState(false)}
-          />
-        );
+
 
       default:
         return <div className="text-center py-20">View not found</div>;
@@ -415,7 +386,7 @@ export default function App() {
         <Topbar
           isWorkflowRunning={isWorkflowRunning}
           isFbConnected={isFbConnected}
-          pageTitle={currentTab === "logs" ? "Workflow logs Audit" : currentTab}
+          pageTitle={currentTab}
         />
 
         {/* Major status alerts */}
@@ -426,6 +397,51 @@ export default function App() {
               <h4 className="font-bold uppercase tracking-wider text-[10px]">SYSTEM EXCEPTION LOGGED</h4>
               <p className="mt-1 font-medium leading-relaxed">{apiError}</p>
             </div>
+          </div>
+        )}
+
+        {/* Workflow Status Banners */}
+        {workflowStatus !== "idle" && (
+          <div className="mx-8 mt-6">
+            {workflowStatus === "running" && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-3 text-blue-700 text-xs shadow-sm shadow-blue-100/50">
+                <Loader2 className="w-5 h-5 text-blue-500 shrink-0 animate-spin" />
+                <div>
+                  <h4 className="font-bold uppercase tracking-wider text-[10px] text-blue-800">Workflow Running</h4>
+                  <p className="mt-1 font-medium leading-relaxed text-blue-600">The automation studio is currently executing your Facebook campaigns...</p>
+                </div>
+              </div>
+            )}
+            {workflowStatus === "success" && (
+              <div className="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl flex items-start gap-3 text-emerald-700 text-xs shadow-sm shadow-emerald-100/50">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-bold uppercase tracking-wider text-[10px] text-emerald-800">Workflow Completed!</h4>
+                  <p className="mt-1 font-medium leading-relaxed text-emerald-600">Your Facebook workflow has completed successfully.</p>
+                </div>
+                <button 
+                  onClick={() => setWorkflowStatus("idle")}
+                  className="text-emerald-500 hover:text-emerald-700 font-bold px-2 text-sm selection:bg-transparent"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            {workflowStatus === "error" && (
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 text-rose-700 text-xs shadow-sm shadow-rose-100/50">
+                <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-bold uppercase tracking-wider text-[10px] text-rose-800">Workflow Failed!</h4>
+                  <p className="mt-1 font-medium leading-relaxed text-rose-600">An error occurred while executing the Facebook campaign workflow.</p>
+                </div>
+                <button 
+                  onClick={() => setWorkflowStatus("idle")}
+                  className="text-rose-500 hover:text-rose-700 font-bold px-2 text-sm selection:bg-transparent"
+                >
+                  ×
+                </button>
+              </div>
+            )}
           </div>
         )}
 
