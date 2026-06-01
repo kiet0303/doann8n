@@ -2,6 +2,27 @@ import React, { useState, useMemo } from "react";
 import { Search, ArrowUpDown, ExternalLink, Users, Sparkles, ShieldCheck } from "lucide-react";
 import { FacebookPage } from "../types";
 
+export const getAvatarColor = (name: string) => {
+  const colors = [
+    "bg-blue-100 text-blue-700 border-blue-200",
+    "bg-amber-100 text-amber-700 border-amber-200",
+    "bg-emerald-100 text-emerald-700 border-emerald-200",
+    "bg-violet-100 text-violet-700 border-violet-200",
+    "bg-rose-100 text-rose-700 border-rose-200",
+    "bg-indigo-100 text-indigo-700 border-indigo-200",
+    "bg-cyan-100 text-cyan-700 border-cyan-200",
+    "bg-teal-100 text-teal-700 border-teal-200",
+    "bg-orange-105 text-orange-700 border-orange-200 font-bold",
+  ];
+  let hash = 0;
+  const cleanName = name || "Page";
+  for (let i = 0; i < cleanName.length; i++) {
+    hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
 interface FanpagesProps {
   pages: FacebookPage[];
   selectedPageIds: string[];
@@ -181,14 +202,26 @@ export default function Fanpages({
                     >
                       <td className={`py-4 px-6 transition-all duration-300 ${isSelected ? "border-l-4 border-blue-600 pl-5 bg-blue-50/10" : ""}`}>
                         <div className="flex items-center gap-3.5">
-                          <img
-                            src={page.pictureUrl}
-                            alt={page.name}
-                            referrerPolicy="no-referrer"
-                            className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0 shadow-sm"
-                          />
+                          <a
+                            href={`https://facebook.com/${page.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border shrink-0 shadow-sm transition hover:scale-105 ${getAvatarColor(page.name)}`}
+                            title={`Open ${page.name} on Facebook`}
+                          >
+                            {page.name ? page.name.trim().charAt(0).toUpperCase() : "?"}
+                          </a>
                           <div>
-                            <h4 className="font-bold text-slate-900 text-xs leading-snug">{page.name}</h4>
+                            <a
+                              href={`https://facebook.com/${page.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-bold text-slate-900 text-xs leading-snug hover:text-blue-600 hover:underline inline-flex items-center gap-1 group"
+                              title={`Open ${page.name} on Facebook`}
+                            >
+                              <span>{page.name}</span>
+                              <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                            </a>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-[9px] text-blue-650 bg-blue-50/50 border border-blue-105/35 font-mono px-1.5 py-0.5 rounded leading-none font-semibold">
                                 ID {page.id.substring(0, 8)}

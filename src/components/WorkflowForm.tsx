@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link2, Play, Square, Facebook, Loader2, AlertCircle, CheckCircle2, ArrowRight, Check, Sparkles } from "lucide-react";
+import { Link2, Play, Square, Facebook, Loader2, AlertCircle, CheckCircle2, ArrowRight, Check, Sparkles, ExternalLink } from "lucide-react";
 import { FacebookPage } from "../types";
 
 interface WorkflowFormProps {
@@ -199,7 +199,25 @@ export default function WorkflowForm({
         </span>
 
         {workflowMode === "sheet" && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
+            {/* Google Sheets Copy Template Instructions */}
+            <div className="p-3 bg-emerald-50 border border-emerald-150 rounded-lg text-xs text-slate-700 space-y-1 shadow-[0_1px_2px_rgba(16,185,129,0.03)] selection:bg-emerald-100">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Google Sheets Template Instructions:</span>
+              </div>
+              <p className="leading-relaxed text-[11px] font-medium text-slate-600">
+                Vui lòng <a 
+                  href="https://docs.google.com/spreadsheets/d/1Yaenh2wkh-eXIp7dyTgn6hITxmK-i5YUK2QDU4oFoY0/edit?usp=sharing" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="font-bold text-emerald-700 underline hover:text-emerald-850 inline-flex items-center gap-0.5"
+                >
+                  nhấp vào đây để copy template <ExternalLink className="w-3 h-3 text-emerald-600 shrink-0" />
+                </a>. Sau đó chọn hành động <strong>tạo bản sao (Make a copy)</strong> và mở quyền chỉnh sửa cho mọi người <strong>(Anyone with the link can edit)</strong> để hệ thống có thể đọc và ghi dữ liệu thành công.
+              </p>
+            </div>
+
             <div className="flex gap-2">
               <input
                 id="sheet-url-input"

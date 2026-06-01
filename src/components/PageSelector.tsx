@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Search, Users, ShieldCheck, Check } from "lucide-react";
+import { Search, Users, ShieldCheck, Check, ExternalLink } from "lucide-react";
 import { FacebookPage } from "../types";
+import { getAvatarColor } from "../pages/Fanpages";
 
 interface PageSelectorProps {
   pages: FacebookPage[];
@@ -117,17 +118,29 @@ export default function PageSelector({
                 />
                 
                 {/* Micro avatar */}
-                <img
-                  src={page.pictureUrl}
-                  alt={page.name}
-                  referrerPolicy="no-referrer"
-                  className="w-8 h-8 rounded-full object-cover border border-slate-200/80 shrink-0"
-                />
+                <a
+                  href={`https://facebook.com/${page.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border shrink-0 shadow-sm transition hover:scale-105 ${getAvatarColor(page.name)}`}
+                  title={`Open ${page.name} on Facebook`}
+                >
+                  {page.name ? page.name.trim().charAt(0).toUpperCase() : "?"}
+                </a>
 
                 <div className="flex-grow min-w-0">
-                  <div className="text-xs font-semibold leading-tight text-slate-900 truncate">
-                    {page.name}
-                  </div>
+                  <a
+                    href={`https://facebook.com/${page.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs font-semibold leading-tight text-slate-900 hover:text-blue-650 hover:underline truncate inline-flex items-center gap-1 group max-w-full"
+                    title={`Open ${page.name} on Facebook`}
+                  >
+                    <span className="truncate">{page.name}</span>
+                    <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-blue-650 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </a>
                   <div className="text-[10px] text-[#64748B] font-medium leading-none mt-1">
                     {page.followers.toLocaleString()} followers
                   </div>
