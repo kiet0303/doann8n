@@ -278,6 +278,12 @@ export default function App() {
   const handleStartWorkflow = async () => {
     setApiError(null);
     try {
+      // Save state to localStorage to prevent losing it on Serverless reset
+      localStorage.setItem("fb_pages", JSON.stringify(pages));
+      localStorage.setItem("fb_connected", "true");
+      localStorage.setItem("fb_selected_pages", JSON.stringify(selectedPageIds));
+      localStorage.setItem("fb_sheet_url", googleSheetUrl);
+
       // Sync selected page IDs with backend configuration before starting
       await workflowService.updateConfig(googleSheetUrl, selectedPageIds);
 
